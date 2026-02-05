@@ -7,6 +7,7 @@ import {
   CardContent,
 } from "../ui/card";
 import Image from "next/image";
+import { useState } from "react";
 
 interface ScryfallCardOverviewProps {
   card: ScryfallCard;
@@ -29,26 +30,36 @@ function SingleFaceCardImage({ card }: { card: ScryfallCard }) {
 }
 
 function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
+  const [activeFaceIndex, setActiveFaceIndex] = useState(0);
+
   if (!card.card_faces?.length) {
     return <p>No image</p>;
   }
 
+  const activeFace = card.card_faces[activeFaceIndex];
+  const faceCount = card.card_faces.length;
+  const nextFaceIndex = (activeFaceIndex + 1) % faceCount;
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      {card.card_faces.map((face, index) =>
-        face.image_uris?.normal ? (
-          <Image
-            key={`${card.id}-${index}`}
-            className="rounded-md"
-            src={face.image_uris.normal}
-            alt={`${card.name} - ${face.name}`}
-            width={488}
-            height={680}
-          />
-        ) : (
-          <p key={`${card.id}-${index}`}>No image</p>
-        ),
+    <div className="flex flex-col items-center gap-3">
+      {activeFace?.image_uris?.normal ? (
+        <Image
+          className="rounded-md"
+          src={activeFace.image_uris.normal}
+          alt={`${card.name} - ${activeFace.name}`}
+          width={488}
+          height={680}
+        />
+      ) : (
+        <p>No image</p>
       )}
+      <button
+        className="rounded-md border px-3 py-1 text-sm"
+        type="button"
+        onClick={() => setActiveFaceIndex(nextFaceIndex)}
+      >
+        Flip
+      </button>
     </div>
   );
 }
