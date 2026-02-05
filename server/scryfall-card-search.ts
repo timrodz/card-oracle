@@ -30,28 +30,20 @@ export async function ScryfallApiSearchCards(
     q: query,
   }).toString();
   try {
-    const firstPage = await fetchScryfallPage(
-      `${API_ENDPOINT}?${queryParameters}`,
-    );
-    const allCards = [...firstPage.data];
-    let nextPage =
-      firstPage.has_more && firstPage.next_page
-        ? firstPage.next_page
-        : undefined;
-
-    while (nextPage) {
-      const page = await fetchScryfallPage(nextPage);
-      allCards.push(...page.data);
-      nextPage = page.has_more && page.next_page ? page.next_page : undefined;
-    }
-
     // TODO: Parse with Zod
-    return {
-      ...firstPage,
-      has_more: false,
-      next_page: undefined,
-      data: allCards,
-    };
+    return await fetchScryfallPage(`${API_ENDPOINT}?${queryParameters}`);
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+export async function ScryfallApiSearchCardsNextPage(
+  nextPageUrl: string,
+): Promise<ScryfallCardApiResponse | null> {
+  try {
+    // TODO: Parse with Zod
+    return await fetchScryfallPage(nextPageUrl);
   } catch (err) {
     console.error(err);
     return null;

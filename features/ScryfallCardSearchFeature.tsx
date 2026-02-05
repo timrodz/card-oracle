@@ -9,7 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ScryfallCard } from "@/lib/types/scryfall-card";
-import { ScryfallApiSearchCards } from "@/server/scryfall-card-search";
+import {
+  ScryfallApiSearchCards,
+  ScryfallApiSearchCardsNextPage,
+} from "@/server/scryfall-card-search";
 import { useConversation } from "@elevenlabs/react";
 import Image from "next/image";
 import { useState } from "react";
@@ -29,6 +32,9 @@ export function ScryfallCardSearchFeature() {
   const [error, setError] = useState<string | null>(null);
 
   const [cards, setCards] = useState<ScryfallCard[]>(initialData);
+  const [hasMoreCards, setHasMoreCards] = useState(false);
+  const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const scryfallCardSearch = async ({
     query,
@@ -43,11 +49,31 @@ export function ScryfallCardSearchFeature() {
     const resultCount = response?.data.length ?? 0;
     if (!response || !resultCount) {
       console.warn("scryfall card search - No results");
+      setCards([]);
+      setHasMoreCards(false);
+      setNextPageUrl(null);
       return `You searched for ${query} but found no results`;
     }
 
     setCards(response.data);
+    setHasMoreCards(Boolean(response.has_more));
+    setNextPageUrl(response.next_page ?? null);
     return `I found ${resultCount} results. Please click on them to learn more! Talk soon.`;
+  };
+
+  const loadMoreCards = async () => {
+    if (!nextPageUrl || isLoadingMore) return;
+    setIsLoadingMore(true);
+    const response = await ScryfallApiSearchCardsNextPage(nextPageUrl);
+    if (!response) {
+      setIsLoadingMore(false);
+      return;
+    }
+
+    setCards((prev) => [...prev, ...response.data]);
+    setHasMoreCards(Boolean(response.has_more));
+    setNextPageUrl(response.next_page ?? null);
+    setIsLoadingMore(false);
   };
 
   const conversation = useConversation({
@@ -174,6 +200,11 @@ export function ScryfallCardSearchFeature() {
             </Card>
           ))}
         </div>
+        {hasMoreCards && (
+          <Button onClick={loadMoreCards} disabled={isLoadingMore}>
+            {isLoadingMore ? "Loading..." : "Load More"}
+          </Button>
+        )}
       </main>
     </div>
   );
