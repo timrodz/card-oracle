@@ -1,25 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ScryfallCard } from "@/lib/types/scryfall-card";
 import {
   ScryfallApiSearchCards,
   ScryfallApiSearchCardsNextPage,
 } from "@/server/scryfall-card-search";
 import { useConversation } from "@elevenlabs/react";
-import Image from "next/image";
 import { useState } from "react";
 
 const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
-import data from "../public/responses/scryfall-card-search.json";
+import data from "../public/responses/scryfall-card-search-paginated-response.json";
+import { ScryfallCardOverview } from "@/components/scryfall-card/ScryfallCardOverview";
 const initialData = data.data as ScryfallCard[];
 
 export function ScryfallCardSearchFeature() {
@@ -183,21 +176,7 @@ export function ScryfallCardSearchFeature() {
 
         <div className="grid grid-cols-3 gap-4">
           {cards.map((card) => (
-            <Card key={card.id}>
-              <CardHeader>
-                <CardTitle>{card.name}</CardTitle>
-                <CardDescription>{card.type_line}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Image
-                  className="rounded-md"
-                  src={card.image_uris.normal}
-                  alt={card.name}
-                  width={488}
-                  height={680}
-                />
-              </CardContent>
-            </Card>
+            <ScryfallCardOverview key={card.id} card={card} />
           ))}
         </div>
         {hasMoreCards && (
