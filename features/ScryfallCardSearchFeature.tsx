@@ -1,13 +1,25 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ScryfallCard } from "@/lib/types/scryfall-card";
 import { ScryfallApiSearchCards } from "@/server/scryfall-card-search";
 import { useConversation } from "@elevenlabs/react";
-import { useState, useCallback, useEffect, useRef } from "react";
+import Image from "next/image";
+import { useState } from "react";
 
 const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
-export function VoiceAssistantFeature() {
+import data from "../public/responses/scryfall-card-search.json";
+const jsonData = data.data;
+
+export function ScryfallCardSearchFeature() {
   const [connectionStatus, setConnectionStatus] = useState<
     "connected" | "disconnected" | "connecting"
   >("disconnected");
@@ -16,11 +28,26 @@ export function VoiceAssistantFeature() {
   >("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const scryfallCardSearch = async (parameters: {
+  const [cards, setCards] = useState<ScryfallCard[]>(jsonData);
+
+  const scryfallCardSearch = async ({
+    query,
+  }: {
     query: string;
   }): Promise<string> => {
-    console.debug("scryfall card search", parameters);
-    return await ScryfallApiSearchCards(parameters.query);
+    console.debug("scryfall card search", query);
+    const response = await ScryfallApiSearchCards(query);
+    console.log("scryfall card search response", {
+      response: response,
+    });
+    const resultCount = response?.data.length ?? 0;
+    if (!response || !resultCount) {
+      console.warn("scryfall card search - No results");
+      return `You searched for ${query} but found no results`;
+    }
+
+    setCards(response.data);
+    return `I found ${resultCount} results. Please click on them to learn more! Talk soon.`;
   };
 
   const conversation = useConversation({
@@ -68,6 +95,7 @@ export function VoiceAssistantFeature() {
     try {
       await conversation.startSession({
         agentId: AGENT_ID,
+        connectionType: "websocket",
       });
     } catch (error) {
       console.error("Failed to start conversation:", error);
@@ -83,8 +111,8 @@ export function VoiceAssistantFeature() {
   };
 
   return (
-    <div className="w-full h-full">
-      <header>
+    <div className="w-full h-full flex flex-col items-center">
+      <header className="mx-auto">
         <h1>MTG Oracle</h1>
         <h2>
           Real-time voice translating tool to help you find MTG cards using
@@ -92,7 +120,7 @@ export function VoiceAssistantFeature() {
         </h2>
       </header>
       {/* Main Content */}
-      <main className="z-10 flex-1 w-full max-w-6xl flex flex-col items-center justify-center min-h-0 relative">
+      <main className="z-10 flex-1 w-full max-w-6xl mx-auto flex flex-col items-center justify-center min-h-0 relative gap-8">
         {/* Voice Control */}
         <div>
           <Button
@@ -123,6 +151,26 @@ export function VoiceAssistantFeature() {
               {error}
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          {cards.map((card) => (
+            <Card key={card.id}>
+              <CardHeader>
+                <CardTitle>{card.name}</CardTitle>
+                <CardDescription>{card.type_line}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Image
+                  className="rounded-md"
+                  src={card.image_uris.normal}
+                  alt={card.name}
+                  width={488}
+                  height={680}
+                />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </main>
     </div>

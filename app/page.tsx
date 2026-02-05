@@ -1,5 +1,5 @@
-import { VoiceAssistantFeature } from "@/features/VoiceAssistantFeature";
+import { ScryfallCardSearchFeature } from "@/features/ScryfallCardSearchFeature";
 
 export default function Home() {
-  return <VoiceAssistantFeature />;
+  return <ScryfallCardSearchFeature />;
 }
