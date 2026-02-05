@@ -5,6 +5,17 @@ import { ScryfallCardApiResponse } from "@/lib/types/scryfall-card";
 // Docs: https://scryfall.com/docs/api/cards/search
 const API_ENDPOINT = "https://api.scryfall.com/cards/search";
 
+async function fetchScryfallPage(
+  url: string,
+): Promise<ScryfallCardApiResponse> {
+  const response = await fetch(url);
+  console.debug("ScryfallApiSearchCards", response.status);
+  if (!response.ok) {
+    throw new Error(`Scryfall API error: ${response.status}`);
+  }
+  return (await response.json()) as ScryfallCardApiResponse;
+}
+
 /**
  *
  * @param query Card to search for
@@ -19,16 +30,30 @@ export async function ScryfallApiSearchCards(
     q: query,
   }).toString();
   try {
-    const response = await fetch(`${API_ENDPOINT}?${queryParameters}`);
-    const responseJson = await response.json();
-    console.debug("ScryfallApiSearchCards", response.status);
+    const firstPage = await fetchScryfallPage(
+      `${API_ENDPOINT}?${queryParameters}`,
+    );
+    const allCards = [...firstPage.data];
+    let nextPage =
+      firstPage.has_more && firstPage.next_page
+        ? firstPage.next_page
+        : undefined;
+
+    while (nextPage) {
+      const page = await fetchScryfallPage(nextPage);
+      allCards.push(...page.data);
+      nextPage = page.has_more && page.next_page ? page.next_page : undefined;
+    }
+
     // TODO: Parse with Zod
-    return responseJson as ScryfallCardApiResponse;
+    return {
+      ...firstPage,
+      has_more: false,
+      next_page: undefined,
+      data: allCards,
+    };
   } catch (err) {
     console.error(err);
     return null;
   }
 }
-
-// TODO: Implement search for next_page attribute found in the search response
-// Example next_page: "https://api.scryfall.com/cards/search?format=json&include_extras=false&include_multilingual=false&include_variations=false&order=cmc&page=2&q=c%3Ared+pow%3D3&unique=cards"

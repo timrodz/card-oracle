@@ -17,7 +17,7 @@ import { useState } from "react";
 const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
 import data from "../public/responses/scryfall-card-search.json";
-const jsonData = data.data;
+const initialData = data.data as ScryfallCard[];
 
 export function ScryfallCardSearchFeature() {
   const [connectionStatus, setConnectionStatus] = useState<
@@ -28,7 +28,7 @@ export function ScryfallCardSearchFeature() {
   >("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const [cards, setCards] = useState<ScryfallCard[]>(jsonData);
+  const [cards, setCards] = useState<ScryfallCard[]>(initialData);
 
   const scryfallCardSearch = async ({
     query,
@@ -90,7 +90,9 @@ export function ScryfallCardSearchFeature() {
 
   const startConversation = async () => {
     if (!AGENT_ID) {
-      throw new Error("No agent ID configured");
+      throw new Error(
+        "No ElevenLabs agent configured - Please configure this in ElevenLabs.",
+      );
     }
     try {
       await conversation.startSession({
