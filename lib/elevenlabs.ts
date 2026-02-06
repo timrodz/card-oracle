@@ -1,30 +1,27 @@
 import { ScryfallCardColor } from "./types/scryfall";
 
 export function mapColorIdentity(colors: string[]): ScryfallCardColor[] {
-  const mapped: ScryfallCardColor[] = [];
-  colors.forEach((color) => {
-    switch (color) {
-      case "white":
-        mapped.push("W");
-        break;
-      case "blue":
-        mapped.push("U");
-        break;
-      case "black":
-        mapped.push("B");
-        break;
-      case "red":
-        mapped.push("R");
-        break;
-      case "green":
-        mapped.push("G");
-        break;
-      case "colorless":
-        mapped.push("Colorless");
-        break;
-      default:
-        break;
-    }
-  });
-  return mapped;
+  return colors
+    .map((color) => {
+      switch (color) {
+        case "white":
+          return "W";
+        case "blue":
+          return "U";
+        case "black":
+          return "B";
+        case "red":
+          return "R";
+        case "green":
+          return "G";
+        case "colorless":
+          return null;
+        default:
+          console.error(
+            `Uknown color parameter from Elevenlabs response ${color}`,
+          );
+          break;
+      }
+    })
+    .filter((c) => typeof c !== "undefined");
 }

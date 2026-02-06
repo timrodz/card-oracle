@@ -126,7 +126,7 @@ export interface ScryfallCardPurchaseUris {
   [key: string]: string | undefined;
 }
 
-export type ScryfallCardColor = "W" | "R" | "B" | "U" | "G" | "Colorless";
+export type ScryfallCardColor = "W" | "R" | "B" | "U" | "G" | null;
 
 export interface ScryfallCardApiResponse {
   object: "list";

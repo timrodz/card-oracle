@@ -2,34 +2,28 @@
 
 import { ScryfallCardOverview } from "@/components/scryfall-card/ScryfallCardOverview";
 import { Button } from "@/components/ui/button";
+import { mapColorIdentity } from "@/lib/elevenlabs";
 import {
-  Combobox,
-  ComboboxChip,
-  ComboboxChips,
-  ComboboxChipsInput,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
-import {
-  ScryfallCardFiltererParams,
-  ScryfallCardSearchParams,
+  ElevenlabsToolScryfallCardFiltererParams,
+  ElevenlabsToolScryfallCardSearchParams,
 } from "@/lib/types/elevenlabs";
-import { ScryfallCard, ScryfallCardColor } from "@/lib/types/scryfall";
+import {
+  ScryfallCard,
+  ScryfallCardApiResponse,
+  ScryfallCardColor,
+} from "@/lib/types/scryfall";
 import {
   ScryfallApiSearchCards,
   ScryfallApiSearchCardsNextPage,
 } from "@/server/scryfall-card-search";
 import { useConversation } from "@elevenlabs/react";
 import { useMemo, useState } from "react";
+import { Filters } from "./components/filters";
 
 const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
-import initialData from "../public/responses/scryfall/results.json";
-import { mapColorIdentity } from "@/lib/elevenlabs";
-const initialCards = initialData.data as ScryfallCard[];
+import initialDataJson from "../../public/responses/scryfall/results.json";
+const initialData = initialDataJson as ScryfallCardApiResponse;
 
 export function ScryfallCardSearchFeature() {
   const [connectionStatus, setConnectionStatus] = useState<
@@ -40,11 +34,9 @@ export function ScryfallCardSearchFeature() {
   >("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const [allCards, setAllCards] = useState<ScryfallCard[]>(initialCards);
-  const [hasMoreCards, setHasMoreCards] = useState(initialData.has_more);
-  const [nextPageUrl, setNextPageUrl] = useState<string | null>(
-    initialData.next_page ?? null,
-  );
+  const [allCards, setAllCards] = useState<ScryfallCard[]>(initialData.data);
+  const [hasMoreCards, setHasMoreCards] = useState<boolean>(false);
+  const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Filters
@@ -53,56 +45,64 @@ export function ScryfallCardSearchFeature() {
   const [selectedSetName, setSelectedSetName] = useState<string | null>(null);
 
   const cmcOptions = useMemo(() => {
-    const unique = new Set<number>();
-    allCards.forEach((card) => unique.add(card.cmc));
+    const unique = new Set<number>(allCards.map((c) => c.cmc));
     return Array.from(unique).sort((a, b) => a - b);
   }, [allCards]);
 
   const colorOptions = useMemo(() => {
-    const unique = new Set<string>();
-    allCards.forEach((card) => {
-      if (!card.color_identity.length) {
-        unique.add("Colorless");
-        return;
-      }
-      card.color_identity.forEach((color) => unique.add(color));
-    });
+    const unique = new Set<ScryfallCardColor>();
+    allCards
+      .map((c) => c.color_identity)
+      .forEach((card) => {
+        if (!card.length) {
+          unique.add(null);
+          return;
+        }
+        card.forEach((color) => unique.add(color));
+      });
     return Array.from(unique).sort();
   }, [allCards]);
 
   const setNameOptions = useMemo(() => {
-    const unique = new Set<string>();
-    allCards.forEach((card) => unique.add(card.set_name));
+    const unique = new Set<string>(allCards.map((c) => c.set_name));
     return Array.from(unique).sort();
   }, [allCards]);
 
-  const filteredCards = useMemo(() => {
-    return allCards.filter((card) => {
-      if (selectedCmc && card.cmc !== Number(selectedCmc)) {
-        return false;
-      }
-      if (selectedColors.length > 0) {
-        if (selectedColors.includes("Colorless")) {
-          return (
-            selectedColors.length === 1 && card.color_identity.length === 0
-          );
-        }
-        const matchesAllColors = selectedColors.every((color) =>
-          card.color_identity.includes(color),
-        );
-        if (!matchesAllColors) {
+  const filteredCards = useMemo(
+    () =>
+      allCards.filter((card) => {
+        if (selectedCmc && card.cmc !== Number(selectedCmc)) {
           return false;
         }
-      }
-      if (selectedSetName && card.set_name !== selectedSetName) {
-        return false;
-      }
-      return true;
-    });
-  }, [allCards, selectedCmc, selectedColors, selectedSetName]);
+        if (selectedColors.length > 0) {
+          if (selectedColors.includes(null)) {
+            return (
+              selectedColors.length === 1 && card.color_identity.length === 0
+            );
+          }
+          const matchesAllColors = selectedColors.every((color) =>
+            card.color_identity.includes(color),
+          );
+          if (!matchesAllColors) {
+            return false;
+          }
+        }
+        if (selectedSetName && card.set_name !== selectedSetName) {
+          return false;
+        }
+        return true;
+      }),
+    [allCards, selectedCmc, selectedColors, selectedSetName],
+  );
+
+  const clearFilters = () => {
+    setSelectedCmc(null);
+    setSelectedColors([]);
+    setSelectedSetName(null);
+  };
 
   const scryfallCardSearch = async (
-    params: ScryfallCardSearchParams,
+    params: ElevenlabsToolScryfallCardSearchParams,
   ): Promise<string> => {
     const { query } = params;
     console.debug("scryfall card search", query);
@@ -116,22 +116,20 @@ export function ScryfallCardSearchFeature() {
       setAllCards([]);
       setHasMoreCards(false);
       setNextPageUrl(null);
-      setSelectedCmc(null);
-      setSelectedColors([]);
-      setSelectedSetName(null);
+      clearFilters();
       return `You searched for ${query} but found no results`;
     }
 
     setAllCards(response.data);
     setHasMoreCards(Boolean(response.has_more));
     setNextPageUrl(response.next_page ?? null);
-    setSelectedCmc(null);
-    setSelectedColors([]);
-    setSelectedSetName(null);
+    clearFilters();
     return `I found ${resultCount} results. Please click on them to learn more! Talk soon.`;
   };
 
-  const scryfallCardFilterer = async (params: ScryfallCardFiltererParams) => {
+  const scryfallCardFilterer = async (
+    params: ElevenlabsToolScryfallCardFiltererParams,
+  ) => {
     const {
       filters: { mana_cost, color_identity, set_name },
     } = params;
@@ -271,80 +269,17 @@ export function ScryfallCardSearchFeature() {
           )}
         </div>
 
-        {allCards.length > 0 && (
-          <div className="flex w-full flex-wrap items-center justify-center gap-4">
-            <Combobox
-              items={cmcOptions}
-              value={selectedCmc}
-              onValueChange={(value) => setSelectedCmc(value)}
-            >
-              <ComboboxInput
-                placeholder="Filter by CMC"
-                showClear
-                aria-label="Filter by CMC"
-              />
-              <ComboboxContent>
-                <ComboboxEmpty>No CMC values found.</ComboboxEmpty>
-                <ComboboxList>
-                  {(item) => (
-                    <ComboboxItem key={item} value={item}>
-                      {item}
-                    </ComboboxItem>
-                  )}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
-            <div className="flex items-center gap-2">
-              <Combobox
-                multiple
-                items={colorOptions}
-                value={selectedColors}
-                onValueChange={(value) => setSelectedColors(value ?? [])}
-              >
-                <ComboboxChips>
-                  {selectedColors.map((color) => (
-                    <ComboboxChip key={color}>{color}</ComboboxChip>
-                  ))}
-                  <ComboboxChipsInput
-                    placeholder="Filter by Color"
-                    aria-label="Filter by color"
-                  />
-                </ComboboxChips>
-                <ComboboxContent>
-                  <ComboboxEmpty>No color values found.</ComboboxEmpty>
-                  <ComboboxList>
-                    {(color) => (
-                      <ComboboxItem key={color} value={color}>
-                        {color}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
-            </div>
-            <Combobox
-              items={setNameOptions}
-              value={selectedSetName}
-              onValueChange={(value) => setSelectedSetName(value)}
-            >
-              <ComboboxInput
-                placeholder="Filter by Set"
-                showClear
-                aria-label="Filter by set name"
-              />
-              <ComboboxContent>
-                <ComboboxEmpty>No set values found.</ComboboxEmpty>
-                <ComboboxList>
-                  {(setName) => (
-                    <ComboboxItem key={setName} value={setName}>
-                      {setName}
-                    </ComboboxItem>
-                  )}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
-          </div>
-        )}
+        <Filters
+          cmcOptions={cmcOptions}
+          selectedCmc={selectedCmc}
+          onCmcChange={setSelectedCmc}
+          colorOptions={colorOptions}
+          selectedColors={selectedColors}
+          onColorsChange={setSelectedColors}
+          setNameOptions={setNameOptions}
+          selectedSetName={selectedSetName}
+          onSetNameChange={setSelectedSetName}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {filteredCards.map((card) => (

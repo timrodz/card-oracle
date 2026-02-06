@@ -1,5 +1,5 @@
 import { CardFilters } from "./types/filters";
-import { ScryfallCard } from "./types/scryfall";
+import { ScryfallCard, ScryfallCardColor } from "./types/scryfall";
 
 export function filterCards(
   allCards: ScryfallCard[],
@@ -11,7 +11,7 @@ export function filterCards(
       return false;
     }
     if (colors && colors.length > 0) {
-      if (colors.includes("Colorless")) {
+      if (colors.includes(null)) {
         return colors.length === 1 && card.color_identity.length === 0;
       }
       const matchesAllColors = colors.every((color) =>
@@ -26,4 +26,21 @@ export function filterCards(
     }
     return true;
   });
+}
+
+export function scryfallColorToLabel(color: ScryfallCardColor): string {
+  switch (color) {
+    case "B":
+      return "Black";
+    case "W":
+      return "White";
+    case "R":
+      return "Red";
+    case "G":
+      return "Green";
+    case "U":
+      return "Blue";
+    case null:
+      return "Colorless";
+  }
 }
