@@ -4,12 +4,19 @@ import { ScryfallCardOverview } from "@/components/scryfall-card/ScryfallCardOve
 import { Button } from "@/components/ui/button";
 import {
   Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
 } from "@/components/ui/combobox";
+import {
+  ScryfallCardFiltererParams,
+  ScryfallCardSearchParams,
+} from "@/lib/types/elevenlabs-agent-tools";
 import { ScryfallCard } from "@/lib/types/scryfall-card";
 import {
   ScryfallApiSearchCards,
@@ -38,8 +45,10 @@ export function ScryfallCardSearchFeature() {
     initialData.next_page ?? null,
   );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Filters
   const [selectedCmc, setSelectedCmc] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSetName, setSelectedSetName] = useState("");
 
   const cmcOptions = useMemo(() => {
@@ -71,12 +80,16 @@ export function ScryfallCardSearchFeature() {
       if (selectedCmc && card.cmc !== Number(selectedCmc)) {
         return false;
       }
-      if (selectedColor) {
-        if (selectedColor === "Colorless") {
-          if (card.color_identity.length !== 0) {
-            return false;
-          }
-        } else if (!card.color_identity.includes(selectedColor)) {
+      if (selectedColors.length > 0) {
+        if (selectedColors.includes("Colorless")) {
+          return (
+            selectedColors.length === 1 && card.color_identity.length === 0
+          );
+        }
+        const matchesAllColors = selectedColors.every((color) =>
+          card.color_identity.includes(color),
+        );
+        if (!matchesAllColors) {
           return false;
         }
       }
@@ -85,13 +98,11 @@ export function ScryfallCardSearchFeature() {
       }
       return true;
     });
-  }, [allCards, selectedCmc, selectedColor, selectedSetName]);
+  }, [allCards, selectedCmc, selectedColors, selectedSetName]);
 
   const scryfallCardSearch = async ({
     query,
-  }: {
-    query: string;
-  }): Promise<string> => {
+  }: ScryfallCardSearchParams): Promise<string> => {
     console.debug("scryfall card search", query);
     const response = await ScryfallApiSearchCards(query);
     console.log("scryfall card search response", {
@@ -104,7 +115,7 @@ export function ScryfallCardSearchFeature() {
       setHasMoreCards(false);
       setNextPageUrl(null);
       setSelectedCmc("");
-      setSelectedColor("");
+      setSelectedColors([]);
       setSelectedSetName("");
       return `You searched for ${query} but found no results`;
     }
@@ -113,9 +124,56 @@ export function ScryfallCardSearchFeature() {
     setHasMoreCards(Boolean(response.has_more));
     setNextPageUrl(response.next_page ?? null);
     setSelectedCmc("");
-    setSelectedColor("");
+    setSelectedColors([]);
     setSelectedSetName("");
     return `I found ${resultCount} results. Please click on them to learn more! Talk soon.`;
+  };
+
+  const mapColorIdentity = (colors: string[]) => {
+    const mapped: string[] = [];
+    colors.forEach((color) => {
+      switch (color) {
+        case "white":
+          mapped.push("W");
+          break;
+        case "blue":
+          mapped.push("U");
+          break;
+        case "black":
+          mapped.push("B");
+          break;
+        case "red":
+          mapped.push("R");
+          break;
+        case "green":
+          mapped.push("G");
+          break;
+        case "colorless":
+          mapped.push("Colorless");
+          break;
+        default:
+          break;
+      }
+    });
+    return mapped;
+  };
+
+  const scryfallCardFilterer = async ({
+    filters: { mana_cost, color_identity, set_name },
+  }: ScryfallCardFiltererParams) => {
+    console.debug("card filter", { mana_cost, color_identity, set_name });
+    // For every field provided, modify the filters with the information.
+    if (mana_cost) {
+      setSelectedCmc(mana_cost.toString());
+    }
+    if (color_identity) {
+      setSelectedColors(mapColorIdentity(color_identity));
+    }
+    if (set_name) {
+      setSelectedSetName(set_name);
+    }
+    // TODO: Fill out response
+    return `My response has indicated ${allCards.length}`;
   };
 
   const loadMoreCards = async () => {
@@ -168,6 +226,7 @@ export function ScryfallCardSearchFeature() {
     },
     clientTools: {
       scryfallCardSearch,
+      scryfallCardFilterer,
     },
   });
 
@@ -260,26 +319,42 @@ export function ScryfallCardSearchFeature() {
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
-            <Combobox
-              value={selectedColor}
-              onValueChange={(value) => setSelectedColor(value ?? "")}
-            >
-              <ComboboxInput
-                placeholder="Filter by Color"
-                showClear
-                aria-label="Filter by color"
-              />
-              <ComboboxContent>
-                <ComboboxList>
-                  <ComboboxEmpty>No color values found.</ComboboxEmpty>
-                  {colorOptions.map((color) => (
-                    <ComboboxItem key={color} value={color}>
-                      {color}
-                    </ComboboxItem>
+            <div className="flex items-center gap-2">
+              <Combobox
+                multiple
+                value={selectedColors}
+                onValueChange={(value) => setSelectedColors(value ?? [])}
+              >
+                <ComboboxChips>
+                  {selectedColors.map((color) => (
+                    <ComboboxChip key={color}>{color}</ComboboxChip>
                   ))}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
+                  <ComboboxChipsInput
+                    placeholder="Filter by Color"
+                    aria-label="Filter by color"
+                  />
+                </ComboboxChips>
+                <ComboboxContent>
+                  <ComboboxList>
+                    <ComboboxEmpty>No color values found.</ComboboxEmpty>
+                    {colorOptions.map((color) => (
+                      <ComboboxItem key={color} value={color}>
+                        {color}
+                      </ComboboxItem>
+                    ))}
+                  </ComboboxList>
+                </ComboboxContent>
+              </Combobox>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedColors([])}
+                disabled={selectedColors.length === 0}
+              >
+                Clear
+              </Button>
+            </div>
             <Combobox
               value={selectedSetName}
               onValueChange={(value) => setSelectedSetName(value ?? "")}
