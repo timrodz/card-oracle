@@ -1,11 +1,4 @@
 import { ScryfallCard } from "@/lib/types/scryfall-card";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "../ui/card";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -41,7 +34,7 @@ function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
   const nextFaceIndex = (activeFaceIndex + 1) % faceCount;
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="relative flex flex-col items-center gap-3">
       {activeFace?.image_uris?.normal ? (
         <Image
           className="rounded-md"
@@ -54,7 +47,7 @@ function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
         <p>No image</p>
       )}
       <button
-        className="rounded-md border px-3 py-1 text-sm"
+        className="absolute right-2 top-2 rounded-md border bg-white/90 px-3 py-1 text-sm shadow-sm"
         type="button"
         onClick={() => setActiveFaceIndex(nextFaceIndex)}
       >
@@ -67,19 +60,9 @@ function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
 export function ScryfallCardOverview({ card }: ScryfallCardOverviewProps) {
   const isDoubleFaced = !card.image_uris?.normal && !!card.card_faces?.length;
 
-  return (
-    <Card key={card.id}>
-      <CardHeader>
-        <CardTitle>{card.name}</CardTitle>
-        <CardDescription>{card.type_line}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {isDoubleFaced ? (
-          <DoubleFacedCardImages card={card} />
-        ) : (
-          <SingleFaceCardImage card={card} />
-        )}
-      </CardContent>
-    </Card>
+  return isDoubleFaced ? (
+    <DoubleFacedCardImages card={card} />
+  ) : (
+    <SingleFaceCardImage card={card} />
   );
 }

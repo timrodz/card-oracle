@@ -25,8 +25,10 @@ export function ScryfallCardSearchFeature() {
   const [error, setError] = useState<string | null>(null);
 
   const [cards, setCards] = useState<ScryfallCard[]>(initialData);
-  const [hasMoreCards, setHasMoreCards] = useState(false);
-  const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);
+  const [hasMoreCards, setHasMoreCards] = useState(data.has_more);
+  const [nextPageUrl, setNextPageUrl] = useState<string | null>(
+    data.next_page ?? null,
+  );
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const scryfallCardSearch = async ({
