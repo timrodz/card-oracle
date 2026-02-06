@@ -36,8 +36,8 @@ export interface ScryfallCard {
   oracle_text: string;
   power?: string;
   toughness?: string;
-  colors: string[];
-  color_identity: string[];
+  colors: ScryfallCardColor[];
+  color_identity: ScryfallCardColor[];
   keywords: string[];
   produced_mana?: string[];
   legalities: ScryfallCardLegalities;
@@ -88,8 +88,10 @@ export interface ScryfallCardLegalities {
 
 export interface ScryfallCardFace {
   name: string;
+  mana_cost: number;
   type_line: string;
   oracle_text?: string;
+  colors: ScryfallCardColor;
   image_uris?: {
     small: string;
     normal: string;
@@ -123,6 +125,8 @@ export interface ScryfallCardPurchaseUris {
   cardhoarder?: string;
   [key: string]: string | undefined;
 }
+
+export type ScryfallCardColor = "W" | "R" | "B" | "U" | "G" | "Colorless";
 
 export interface ScryfallCardApiResponse {
   object: "list";

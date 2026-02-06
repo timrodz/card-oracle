@@ -1,7 +1,8 @@
-import { ScryfallCard } from "@/lib/types/scryfall-card";
+import { ScryfallCard } from "@/lib/types/scryfall";
 import Image from "next/image";
 import { useState } from "react";
 import { Button } from "../ui/button";
+import { RefreshCcwIcon } from "lucide-react";
 
 interface ScryfallCardOverviewProps {
   card: ScryfallCard;
@@ -50,11 +51,11 @@ function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
         <p>No image</p>
       )}
       <Button
-        className="absolute -right-2 -top-2"
+        className="absolute -right-[5%] top-[35%] -translate-y-1/2"
         type="button"
         onClick={() => setActiveFaceIndex(nextFaceIndex)}
       >
-        Flip
+        <RefreshCcwIcon />
       </Button>
     </div>
   );

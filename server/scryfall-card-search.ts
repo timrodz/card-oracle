@@ -1,6 +1,6 @@
 "use server";
 
-import { ScryfallCardApiResponse } from "@/lib/types/scryfall-card";
+import { ScryfallCardApiResponse } from "@/lib/types/scryfall";
 
 // Docs: https://scryfall.com/docs/api/cards/search
 const API_ENDPOINT = "https://api.scryfall.com/cards/search";
@@ -13,6 +13,7 @@ async function fetchScryfallPage(
   if (!response.ok) {
     throw new Error(`Scryfall API error: ${response.status}`);
   }
+  // TODO: Have to cleanup the response for set names so it's case insensitive
   return (await response.json()) as ScryfallCardApiResponse;
 }
 

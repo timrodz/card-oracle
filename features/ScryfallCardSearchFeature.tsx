@@ -16,8 +16,8 @@ import {
 import {
   ScryfallCardFiltererParams,
   ScryfallCardSearchParams,
-} from "@/lib/types/elevenlabs-agent-tools";
-import { ScryfallCard } from "@/lib/types/scryfall-card";
+} from "@/lib/types/elevenlabs";
+import { ScryfallCard, ScryfallCardColor } from "@/lib/types/scryfall";
 import {
   ScryfallApiSearchCards,
   ScryfallApiSearchCardsNextPage,
@@ -27,7 +27,8 @@ import { useMemo, useState } from "react";
 
 const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
-import initialData from "../public/responses/scryfall-card-search-paginated-response.json";
+import initialData from "../public/responses/scryfall/results.json";
+import { mapColorIdentity } from "@/lib/elevenlabs";
 const initialCards = initialData.data as ScryfallCard[];
 
 export function ScryfallCardSearchFeature() {
@@ -48,7 +49,7 @@ export function ScryfallCardSearchFeature() {
 
   // Filters
   const [selectedCmc, setSelectedCmc] = useState<number | null>(null);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<ScryfallCardColor[]>([]);
   const [selectedSetName, setSelectedSetName] = useState<string | null>(null);
 
   const cmcOptions = useMemo(() => {
@@ -100,9 +101,10 @@ export function ScryfallCardSearchFeature() {
     });
   }, [allCards, selectedCmc, selectedColors, selectedSetName]);
 
-  const scryfallCardSearch = async ({
-    query,
-  }: ScryfallCardSearchParams): Promise<string> => {
+  const scryfallCardSearch = async (
+    params: ScryfallCardSearchParams,
+  ): Promise<string> => {
+    const { query } = params;
     console.debug("scryfall card search", query);
     const response = await ScryfallApiSearchCards(query);
     console.log("scryfall card search response", {
@@ -129,38 +131,10 @@ export function ScryfallCardSearchFeature() {
     return `I found ${resultCount} results. Please click on them to learn more! Talk soon.`;
   };
 
-  const mapColorIdentity = (colors: string[]) => {
-    const mapped: string[] = [];
-    colors.forEach((color) => {
-      switch (color) {
-        case "white":
-          mapped.push("W");
-          break;
-        case "blue":
-          mapped.push("U");
-          break;
-        case "black":
-          mapped.push("B");
-          break;
-        case "red":
-          mapped.push("R");
-          break;
-        case "green":
-          mapped.push("G");
-          break;
-        case "colorless":
-          mapped.push("Colorless");
-          break;
-        default:
-          break;
-      }
-    });
-    return mapped;
-  };
-
-  const scryfallCardFilterer = async ({
-    filters: { mana_cost, color_identity, set_name },
-  }: ScryfallCardFiltererParams) => {
+  const scryfallCardFilterer = async (params: ScryfallCardFiltererParams) => {
+    const {
+      filters: { mana_cost, color_identity, set_name },
+    } = params;
     console.debug("card filter", { mana_cost, color_identity, set_name });
     // For every field provided, modify the filters with the information.
     if (mana_cost) {
@@ -255,7 +229,7 @@ export function ScryfallCardSearchFeature() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center">
+    <div className="px-4 py-10 w-full h-full flex flex-col items-center">
       <header className="mx-auto">
         <h1>MTG Oracle</h1>
         <h2>
@@ -372,7 +346,7 @@ export function ScryfallCardSearchFeature() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {filteredCards.map((card) => (
             <ScryfallCardOverview key={card.id} card={card} />
           ))}
