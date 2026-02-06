@@ -51,11 +51,11 @@ export function ScryfallCardSearchFeature() {
   const colorOptions = useMemo(() => {
     const unique = new Set<string>();
     allCards.forEach((card) => {
-      if (!card.colors.length) {
+      if (!card.color_identity.length) {
         unique.add("Colorless");
         return;
       }
-      card.colors.forEach((color) => unique.add(color));
+      card.color_identity.forEach((color) => unique.add(color));
     });
     return Array.from(unique).sort();
   }, [allCards]);
@@ -73,10 +73,10 @@ export function ScryfallCardSearchFeature() {
       }
       if (selectedColor) {
         if (selectedColor === "Colorless") {
-          if (card.colors.length !== 0) {
+          if (card.color_identity.length !== 0) {
             return false;
           }
-        } else if (!card.colors.includes(selectedColor)) {
+        } else if (!card.color_identity.includes(selectedColor)) {
           return false;
         }
       }
