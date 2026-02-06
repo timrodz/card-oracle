@@ -1,6 +1,7 @@
 import { ScryfallCard } from "@/lib/types/scryfall-card";
 import Image from "next/image";
 import { useState } from "react";
+import { Button } from "../ui/button";
 
 interface ScryfallCardOverviewProps {
   card: ScryfallCard;
@@ -12,13 +13,15 @@ function SingleFaceCardImage({ card }: { card: ScryfallCard }) {
   }
 
   return (
-    <Image
-      className="rounded-md"
-      src={card.image_uris.normal}
-      alt={card.name}
-      width={488}
-      height={680}
-    />
+    <div>
+      <Image
+        className="rounded-md"
+        src={card.image_uris.normal}
+        alt={card.name}
+        width={488}
+        height={680}
+      />
+    </div>
   );
 }
 
@@ -46,13 +49,13 @@ function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
       ) : (
         <p>No image</p>
       )}
-      <button
-        className="absolute right-2 top-2 rounded-md border bg-white/90 px-3 py-1 text-sm shadow-sm"
+      <Button
+        className="absolute -right-2 -top-2"
         type="button"
         onClick={() => setActiveFaceIndex(nextFaceIndex)}
       >
         Flip
-      </button>
+      </Button>
     </div>
   );
 }
