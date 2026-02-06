@@ -47,9 +47,9 @@ export function ScryfallCardSearchFeature() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Filters
-  const [selectedCmc, setSelectedCmc] = useState("");
+  const [selectedCmc, setSelectedCmc] = useState<number | null>(null);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [selectedSetName, setSelectedSetName] = useState("");
+  const [selectedSetName, setSelectedSetName] = useState<string | null>(null);
 
   const cmcOptions = useMemo(() => {
     const unique = new Set<number>();
@@ -114,18 +114,18 @@ export function ScryfallCardSearchFeature() {
       setAllCards([]);
       setHasMoreCards(false);
       setNextPageUrl(null);
-      setSelectedCmc("");
+      setSelectedCmc(null);
       setSelectedColors([]);
-      setSelectedSetName("");
+      setSelectedSetName(null);
       return `You searched for ${query} but found no results`;
     }
 
     setAllCards(response.data);
     setHasMoreCards(Boolean(response.has_more));
     setNextPageUrl(response.next_page ?? null);
-    setSelectedCmc("");
+    setSelectedCmc(null);
     setSelectedColors([]);
-    setSelectedSetName("");
+    setSelectedSetName(null);
     return `I found ${resultCount} results. Please click on them to learn more! Talk soon.`;
   };
 
@@ -164,7 +164,7 @@ export function ScryfallCardSearchFeature() {
     console.debug("card filter", { mana_cost, color_identity, set_name });
     // For every field provided, modify the filters with the information.
     if (mana_cost) {
-      setSelectedCmc(mana_cost.toString());
+      setSelectedCmc(mana_cost);
     }
     if (color_identity) {
       setSelectedColors(mapColorIdentity(color_identity));
@@ -300,8 +300,9 @@ export function ScryfallCardSearchFeature() {
         {allCards.length > 0 && (
           <div className="flex w-full flex-wrap items-center justify-center gap-4">
             <Combobox
+              items={cmcOptions}
               value={selectedCmc}
-              onValueChange={(value) => setSelectedCmc(value ?? "")}
+              onValueChange={(value) => setSelectedCmc(value)}
             >
               <ComboboxInput
                 placeholder="Filter by CMC"
@@ -309,19 +310,20 @@ export function ScryfallCardSearchFeature() {
                 aria-label="Filter by CMC"
               />
               <ComboboxContent>
+                <ComboboxEmpty>No CMC values found.</ComboboxEmpty>
                 <ComboboxList>
-                  <ComboboxEmpty>No CMC values found.</ComboboxEmpty>
-                  {cmcOptions.map((cmc) => (
-                    <ComboboxItem key={cmc} value={String(cmc)}>
-                      {cmc}
+                  {(item) => (
+                    <ComboboxItem key={item} value={item}>
+                      {item}
                     </ComboboxItem>
-                  ))}
+                  )}
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
             <div className="flex items-center gap-2">
               <Combobox
                 multiple
+                items={colorOptions}
                 value={selectedColors}
                 onValueChange={(value) => setSelectedColors(value ?? [])}
               >
@@ -335,29 +337,21 @@ export function ScryfallCardSearchFeature() {
                   />
                 </ComboboxChips>
                 <ComboboxContent>
+                  <ComboboxEmpty>No color values found.</ComboboxEmpty>
                   <ComboboxList>
-                    <ComboboxEmpty>No color values found.</ComboboxEmpty>
-                    {colorOptions.map((color) => (
+                    {(color) => (
                       <ComboboxItem key={color} value={color}>
                         {color}
                       </ComboboxItem>
-                    ))}
+                    )}
                   </ComboboxList>
                 </ComboboxContent>
               </Combobox>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => setSelectedColors([])}
-                disabled={selectedColors.length === 0}
-              >
-                Clear
-              </Button>
             </div>
             <Combobox
+              items={setNameOptions}
               value={selectedSetName}
-              onValueChange={(value) => setSelectedSetName(value ?? "")}
+              onValueChange={(value) => setSelectedSetName(value)}
             >
               <ComboboxInput
                 placeholder="Filter by Set"
@@ -365,13 +359,13 @@ export function ScryfallCardSearchFeature() {
                 aria-label="Filter by set name"
               />
               <ComboboxContent>
+                <ComboboxEmpty>No set values found.</ComboboxEmpty>
                 <ComboboxList>
-                  <ComboboxEmpty>No set values found.</ComboboxEmpty>
-                  {setNameOptions.map((setName) => (
+                  {(setName) => (
                     <ComboboxItem key={setName} value={setName}>
                       {setName}
                     </ComboboxItem>
-                  ))}
+                  )}
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
