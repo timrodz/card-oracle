@@ -24,7 +24,7 @@ interface FiltersProps {
   onSetNameChange: (setName: string | null) => void;
 }
 
-export function Filters({
+export function ScryfallCardFilters({
   selectedCmc,
   selectedSetName,
   selectedColors,
