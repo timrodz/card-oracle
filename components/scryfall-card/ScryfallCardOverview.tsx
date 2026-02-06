@@ -1,6 +1,7 @@
 import { ScryfallCard } from "@/lib/types/scryfall";
 import Image from "next/image";
-import { useState } from "react";
+import { motion, useInView } from "motion/react";
+import { useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { RefreshCcwIcon } from "lucide-react";
 
@@ -63,10 +64,25 @@ function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
 
 export function ScryfallCardOverview({ card }: ScryfallCardOverviewProps) {
   const isDoubleFaced = !card.image_uris?.normal && !!card.card_faces?.length;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const isInView = useInView(containerRef, { amount: 0.15 });
 
-  return isDoubleFaced ? (
-    <DoubleFacedCardImages card={card} />
-  ) : (
-    <SingleFaceCardImage card={card} />
+  return (
+    <motion.div
+      ref={containerRef}
+      initial="out"
+      animate={isInView ? "in" : "out"}
+      variants={{
+        in: { opacity: 1, scale: 1 },
+        out: { opacity: 0, scale: 0.96 },
+      }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+    >
+      {isDoubleFaced ? (
+        <DoubleFacedCardImages card={card} />
+      ) : (
+        <SingleFaceCardImage card={card} />
+      )}
+    </motion.div>
   );
 }
