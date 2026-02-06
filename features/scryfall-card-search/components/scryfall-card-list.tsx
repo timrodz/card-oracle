@@ -1,4 +1,4 @@
-import { ScryfallCardOverview } from "@/components/scryfall-card/ScryfallCardOverview";
+import { ScryfallCardOverview } from "@/features/scryfall-card-search/components/scryfall-card";
 import { Button } from "@/components/ui/button";
 import { ScryfallCard } from "@/lib/types/scryfall";
 

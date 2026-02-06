@@ -4,12 +4,14 @@ import {
   ElevenlabsToolScryfallCardSearchParams,
 } from "@/lib/types/elevenlabs";
 import {
-  PhoneCallIcon,
-  PhoneIcon,
-  PhoneMissedIcon,
-  PhoneOutgoingIcon,
+  AlertCircleIcon,
+  SparklesIcon,
+  StarOffIcon,
+  WandIcon,
+  WandSparklesIcon,
 } from "lucide-react";
 import { useElevenlabsConversation } from "../viewModels/use-elevenlabs-conversation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ElevenlabsConversationProps {
   onScryfallCardSearch: (
@@ -24,7 +26,7 @@ export function ElevenlabsConversation({
   onScryfallCardFilterer,
 }: ElevenlabsConversationProps) {
   const {
-    data: { connectionStatus, agentStatus, error },
+    data: { connectionStatus, error },
     operations: { startConversation, endConversation },
   } = useElevenlabsConversation({
     onScryfallCardSearch,
@@ -34,44 +36,41 @@ export function ElevenlabsConversation({
   const callIcon = () => {
     switch (connectionStatus) {
       case "connecting":
-        return <PhoneOutgoingIcon />;
+        return <WandSparklesIcon />;
       case "connected":
-        return <PhoneCallIcon />;
+        return <SparklesIcon />;
       case "disconnected":
-        return <PhoneIcon />;
+        return <WandIcon />;
     }
   };
 
   return (
-    <div>
-      <Button
-        onClick={startConversation}
-        disabled={
-          connectionStatus === "connecting" || connectionStatus === "connected"
-        }
-      >
-        {callIcon()}
-        Start Conversation
-      </Button>
-      <Button
-        onClick={endConversation}
-        disabled={connectionStatus === "disconnected"}
-      >
-        <PhoneMissedIcon />
-        End Conversation
-      </Button>
-      <p>
-        {connectionStatus === "connected"
-          ? agentStatus === "speaking"
-            ? "Speaking..."
-            : "Listening..."
-          : "Tap to Speak"}
-      </p>
+    <div className="space-y-2">
+      <div className="flex gap-4">
+        <Button
+          onClick={startConversation}
+          disabled={
+            connectionStatus === "connecting" ||
+            connectionStatus === "connected"
+          }
+        >
+          {callIcon()}
+          Speak with the oracle
+        </Button>
+        {connectionStatus === "connected" && (
+          <Button onClick={endConversation}>
+            <StarOffIcon />
+            End Conversation
+          </Button>
+        )}
+      </div>
 
       {error && (
-        <div className="absolute -bottom-16 px-4 py-2 bg-red-50 text-red-500 rounded-lg text-xs whitespace-nowrap">
-          {error}
-        </div>
+        <Alert>
+          <AlertCircleIcon />
+          <AlertTitle>{`Seems like my magic has worn off...`}</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
     </div>
   );

@@ -1,28 +1,29 @@
-import { ScryfallCard } from "@/lib/types/scryfall";
+import { ScryfallCardFace, type ScryfallCard } from "@/lib/types/scryfall";
 import Image from "next/image";
 import { motion, useInView } from "motion/react";
 import { useRef, useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "../../../components/ui/button";
 import { RefreshCcwIcon } from "lucide-react";
+
+function getCardImageUrl(
+  card: ScryfallCard | ScryfallCardFace,
+): string | undefined {
+  return card.image_uris?.normal;
+}
 
 interface ScryfallCardOverviewProps {
   card: ScryfallCard;
 }
 
 function SingleFaceCardImage({ card }: { card: ScryfallCard }) {
-  if (!card.image_uris?.normal) {
+  const imageUrl = getCardImageUrl(card);
+  if (!imageUrl) {
     return <p>No image</p>;
   }
 
   return (
     <div>
-      <Image
-        className="rounded-md"
-        src={card.image_uris.normal}
-        alt={card.name}
-        width={488}
-        height={680}
-      />
+      <Image src={imageUrl} alt={card.name} width={488} height={680} />
     </div>
   );
 }
@@ -35,15 +36,15 @@ function DoubleFacedCardImages({ card }: { card: ScryfallCard }) {
   }
 
   const activeFace = card.card_faces[activeFaceIndex];
+  const activeFaceImageUrl = getCardImageUrl(activeFace);
   const faceCount = card.card_faces.length;
   const nextFaceIndex = (activeFaceIndex + 1) % faceCount;
 
   return (
     <div className="relative flex flex-col items-center gap-3">
-      {activeFace?.image_uris?.normal ? (
+      {activeFaceImageUrl ? (
         <Image
-          className="rounded-md"
-          src={activeFace.image_uris.normal}
+          src={activeFaceImageUrl}
           alt={`${card.name} - ${activeFace.name}`}
           width={488}
           height={680}

@@ -3,7 +3,7 @@
 import { ScryfallCardApiResponse } from "@/lib/types/scryfall";
 import { ElevenlabsConversation } from "./components/elevenlabs-conversation";
 import { ScryfallCardFilters } from "./components/scryfall-card-filters";
-import { ScryfallCards } from "./components/scryfall-cards";
+import { ScryfallCards } from "./components/scryfall-card-list";
 import { useScryfallCards } from "./viewModels/use-scryfall-cards";
 
 import initialDataJson from "../../public/responses/scryfall/results.json";
