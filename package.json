@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint --cache --fix",
     "typecheck": "tsc --noEmit",
-    "format": "prettier src --write",
+    "format": "prettier --write **/*.{ts,tsx}",
     "prepare": "husky"
   },
   "dependencies": {
