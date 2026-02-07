@@ -6,12 +6,13 @@ import { ScryfallCardFilters } from "./components/scryfall-card-filters";
 import { ScryfallCards } from "./components/scryfall-card-list";
 import { useScryfallCards } from "./viewModels/use-scryfall-cards";
 
-import initialDataJson from "../../public/responses/scryfall/results.json";
+import initialDataJson from "../../public/responses/scryfall/scryfall-card-search-paginated-response.json";
 const initialData = initialDataJson as ScryfallCardApiResponse;
 
 export function ScryfallCardSearchFeature() {
   const {
     data: {
+      allCards,
       filteredCards,
       hasMoreCards,
       cmcOptions,
@@ -35,7 +36,7 @@ export function ScryfallCardSearchFeature() {
   });
 
   return (
-    <div className="px-4 py-10 w-full h-full flex flex-col items-center">
+    <div className="px-4 py-10 w-full h-full flex flex-col items-center gap-8">
       <header className="mx-auto">
         <h1>MTG Oracle</h1>
         <h2>
@@ -49,17 +50,19 @@ export function ScryfallCardSearchFeature() {
           onScryfallCardFilterer={onHandleScryfallCardFilterer}
         />
 
-        <ScryfallCardFilters
-          cmcOptions={cmcOptions}
-          selectedCmc={selectedCmc}
-          onCmcChange={setSelectedCmc}
-          colorOptions={colorOptions}
-          selectedColors={selectedColors}
-          onColorsChange={setSelectedColors}
-          setNameOptions={setNameOptions}
-          selectedSetName={selectedSetName}
-          onSetNameChange={setSelectedSetName}
-        />
+        {allCards.length > 0 && (
+          <ScryfallCardFilters
+            cmcOptions={cmcOptions}
+            selectedCmc={selectedCmc}
+            onCmcChange={setSelectedCmc}
+            colorOptions={colorOptions}
+            selectedColors={selectedColors}
+            onColorsChange={setSelectedColors}
+            setNameOptions={setNameOptions}
+            selectedSetName={selectedSetName}
+            onSetNameChange={setSelectedSetName}
+          />
+        )}
 
         <ScryfallCards
           filteredCards={filteredCards}
