@@ -36,11 +36,11 @@ export function ElevenlabsConversation({
   const callIcon = () => {
     switch (connectionStatus) {
       case "connecting":
-        return <WandSparklesIcon />;
+        return <WandSparklesIcon className="size-5" />;
       case "connected":
-        return <SparklesIcon />;
+        return <SparklesIcon className="size-5" />;
       case "disconnected":
-        return <WandIcon />;
+        return <WandIcon className="size-5" />;
     }
   };
 
@@ -53,6 +53,7 @@ export function ElevenlabsConversation({
             connectionStatus === "connecting" ||
             connectionStatus === "connected"
           }
+          className="text-xl"
         >
           {callIcon()}
           Speak with the oracle

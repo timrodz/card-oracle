@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Oxanium as FontSans, Geist_Mono as FontMono } from "next/font/google";
+import { Quantico as FontSans, Geist_Mono as FontMono } from "next/font/google";
 import "./globals.css";
 
 const fontSans = FontSans({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: "400",
 });
 
 const fontMono = FontMono({
