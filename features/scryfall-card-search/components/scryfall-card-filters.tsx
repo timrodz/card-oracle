@@ -58,14 +58,14 @@ export function ScryfallCardFilters({
           </ComboboxList>
         </ComboboxContent>
       </Combobox>
-      <div className="flex items-center gap-2">
+      <div className="flex w-[320px] flex-none items-center gap-2">
         <Combobox
           multiple
           items={colorOptions}
           value={selectedColors}
           onValueChange={(value) => onColorsChange(value ?? [])}
         >
-          <ComboboxChips>
+          <ComboboxChips className="w-[320px] min-w-[320px]">
             {selectedColors?.map((color) => (
               <ComboboxChip key={color}>
                 {scryfallColorToLabel(color)}
