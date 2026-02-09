@@ -53,7 +53,7 @@ export function ElevenlabsConversation({
             connectionStatus === "connecting" ||
             connectionStatus === "connected"
           }
-          className="text-xl"
+          className="text-lg"
         >
           {callIcon()}
           Speak with the oracle
