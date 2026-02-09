@@ -14,5 +14,13 @@ export function cleanCardId(rawId: string) {
     }
   })();
 
-  return safeDecoded.replace(/["']/g, "").replace(/\s+/g, "").trim();
+  const trimmed = safeDecoded.trim();
+  const uuidMatch = trimmed.match(
+    /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/,
+  );
+  if (uuidMatch) {
+    return uuidMatch[0].toLowerCase();
+  }
+
+  return trimmed.replace(/["']/g, "").replace(/\s+/g, "");
 }

@@ -4,6 +4,7 @@
 
 export interface ScryfallCard {
   object: "card";
+  _id: string;
   id: string;
   oracle_id: string;
   multiverse_ids: number[];
@@ -80,6 +81,10 @@ export interface ScryfallCard {
   prices: ScryfallCardPrices;
   related_uris: ScryfallCardRelatedUris;
   purchase_uris: ScryfallCardPurchaseUris;
+}
+
+export interface MongoDBScryfallCard extends ScryfallCard {
+  _id: string;
 }
 
 export interface ScryfallCardLegalities {
