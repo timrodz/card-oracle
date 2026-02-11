@@ -131,7 +131,7 @@ export function useChat() {
 
     try {
       const response = await fetch(
-        `${API_BASE}/stream/search?query=${encodeURIComponent(query)}`,
+        `${API_BASE}/search/stream?query=${encodeURIComponent(query)}`,
         {
           method: "GET",
         },
